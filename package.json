@@ -1,0 +1,17 @@
+{
+  "name": "nodeservice",
+  "version": "2.0.0",
+  "module": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.js",
+    "dev": "bun --watch server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Hono + Bun 高性能静态资源托管和API代理",
+  "dependencies": {
+    "hono": "^4"
+  }
+}
