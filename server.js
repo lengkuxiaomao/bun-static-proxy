@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { serveStatic } from "hono/bun";
 import { createServer } from "net";
+import { resolve } from "node:path";
 
 const app = new Hono();
 
@@ -9,6 +10,9 @@ const preferredPort = parseInt(process.env.PORT || "3000");
 const proxyTarget = process.env.PROXY_TARGET || "http://10.20.0.168:9000";
 const proxyPrefix = process.env.PROXY_PREFIX || "/gateway";
 const prefixRegex = new RegExp(`^${proxyPrefix}`);
+
+// 【静态资源路径】支持从环境变量 DIST_DIR 读取，默认为 ./dist
+const distPath = resolve(process.env.DIST_DIR || "./dist");
 
 // 【端口检测】检查端口是否可用
 function isPortAvailable(port) {
@@ -86,7 +90,7 @@ async function proxyHandler(c) {
 app.use(
   "/*",
   serveStatic({
-    root: "./dist",
+    root: distPath,
     onFound: (_path, c) => {
       if (
         _path.endsWith(".html") ||
@@ -103,7 +107,7 @@ app.use(
 );
 
 // 【SPA 兜底】
-const indexFile = Bun.file(`${import.meta.dir}/dist/index.html`);
+const indexFile = Bun.file(resolve(distPath, "index.html"));
 
 app.get("*", async (c) => {
   if (await indexFile.exists()) {
@@ -145,6 +149,7 @@ console.log(
   ${gray}[LOCAL]${reset}   ${cyan}http://localhost:${server.port}${reset}
   ${gray}[HEALTH]${reset}  ${cyan}http://localhost:${server.port}/health-check${reset}
   ${gray}[PROXY]${reset}   ${bold}${proxyPrefix}${reset} ${gray}➔${reset} ${gray}${proxyTarget}${reset}
+  ${gray}[STATIC]${reset}  ${cyan}${distPath}${reset}
   ${gray}[ENGINE]${reset}  ${magenta}Bun${reset} ${gray}+${reset} ${orange}Hono 🔥${reset}
   ${gray}┈${reset}`.padEnd(55, "┈") +
     "\n",
