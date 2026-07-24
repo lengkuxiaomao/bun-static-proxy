@@ -7,9 +7,9 @@ import { resolve } from "node:path";
 
 const app = new Hono();
 
-const preferredPort: number = parseInt(process.env.PORT || "3000");
-const proxyTarget: string = process.env.PROXY_TARGET || "http://10.20.0.168:9000";
-const proxyPrefix: string = process.env.PROXY_PREFIX || "/gateway";
+const preferredPort: number = parseInt(process.env.PORT || "80");
+const proxyTarget: string = process.env.PROXY_TARGET || "http://127.0.0.1:80";
+const proxyPrefix: string = process.env.PROXY_PREFIX || "/api";
 const prefixRegex: RegExp = new RegExp(`^${proxyPrefix}`);
 
 // 【静态资源路径】支持从环境变量 DIST_DIR 读取，默认为 ./dist
@@ -26,7 +26,10 @@ function isPortAvailable(port: number): Promise<boolean> {
 }
 
 // 【端口检测】从指定端口开始，找到第一个可用端口
-async function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number> {
+async function findAvailablePort(
+  startPort: number,
+  maxAttempts: number = 10,
+): Promise<number> {
   for (let port = startPort; port < startPort + maxAttempts; port++) {
     if (await isPortAvailable(port)) {
       if (port !== startPort) {
@@ -45,7 +48,9 @@ async function findAvailablePort(startPort: number, maxAttempts: number = 10): P
 app.use("*", logger());
 
 // 【心跳】
-app.get("/health-check", (c: Context) => c.text("Bun + Hono Server is running!"));
+app.get("/health-check", (c: Context) =>
+  c.text("Bun + Hono Server is running!"),
+);
 
 // 【代理】
 app.all(`${proxyPrefix}/*`, proxyHandler);
@@ -109,7 +114,9 @@ app.use(
 );
 
 // 【SPA 兜底】
-const indexFile: ReturnType<typeof Bun.file> = Bun.file(resolve(distPath, "index.html"));
+const indexFile: ReturnType<typeof Bun.file> = Bun.file(
+  resolve(distPath, "index.html"),
+);
 
 app.get("*", async (c: Context): Promise<Response> => {
   if (await indexFile.exists()) {
