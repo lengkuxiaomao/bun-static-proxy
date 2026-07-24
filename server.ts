@@ -9,7 +9,7 @@ const app = new Hono();
 
 const preferredPort: number = parseInt(process.env.PORT || "80");
 const proxyTarget: string = process.env.PROXY_TARGET || "http://127.0.0.1:80";
-const proxyPrefix: string = process.env.PROXY_PREFIX || "/api";
+const proxyPrefix: string = process.env.PROXY_PREFIX || "";
 const prefixRegex: RegExp = new RegExp(`^${proxyPrefix}`);
 
 // 【静态资源路径】支持从环境变量 DIST_DIR 读取，默认为 ./dist
